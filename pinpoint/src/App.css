@@ -37,6 +37,11 @@
   padding: 2em;
 }
 
+/* body {
+  border-radius: 12px;
+  overflow: hidden;
+} */
+
 .read-the-docs {
   color: #888;
 }
