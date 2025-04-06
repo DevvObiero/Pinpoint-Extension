@@ -1,17 +1,53 @@
-// App.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiSettings, FiUser, FiEdit, FiShare2, FiTrash } from "react-icons/fi";
+import SettingsPanel from "./SettingsPanel";
 import "./App.css";
 
 function App() {
   const [pins, setPins] = useState([]); // Empty = no pins yet
+  const [settingsVisible, setSettingsVisible] = useState(false);
+
+  // Get initial colors from localStorage or fallback to default
+  const savedBackgroundColor =
+    localStorage.getItem("backgroundColor") || "#ffffff";
+  const savedTextColor = localStorage.getItem("textColor") || "#000000";
+
+  const [settings, setSettings] = useState({
+    backgroundColor: savedBackgroundColor,
+    textColor: savedTextColor
+  });
+
   const isPremium = false; // mock premium access
 
+  const toggleSettings = () => {
+    setSettingsVisible((prevState) => !prevState);
+  };
+
+  const updateSettings = (newSettings) => {
+    setSettings((prevSettings) => {
+      const updatedSettings = { ...prevSettings, ...newSettings };
+      // Save the new settings to localStorage
+      if (newSettings.backgroundColor) {
+        localStorage.setItem("backgroundColor", newSettings.backgroundColor);
+      }
+      if (newSettings.textColor) {
+        localStorage.setItem("textColor", newSettings.textColor);
+      }
+      return updatedSettings;
+    });
+  };
+
   return (
-    <div className="w-[320px] h-[500px] bg-brand dark:bg-gray-900 text-black dark:text-white p-4 rounded-lg shadow-md">
+    <div
+      className="w-[320px] h-[500px] rounded-lg shadow-md"
+      style={{
+        backgroundColor: settings.backgroundColor,
+        color: settings.textColor
+      }}
+    >
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <button>
+        <button onClick={toggleSettings}>
           <FiSettings className="w-5 h-5" />
         </button>
         <button>
@@ -50,6 +86,14 @@ function App() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Render Settings Panel */}
+      {settingsVisible && (
+        <SettingsPanel
+          onClose={toggleSettings}
+          onChangeSettings={updateSettings}
+        />
       )}
     </div>
   );

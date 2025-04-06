@@ -2,6 +2,9 @@
   "manifest_version": 3,
   "name": "Pinpoint Extension",
   "version": "1.0",
+  "description": "Pin important sections of any webpage with a single click—no more scrolling. Your key moments, always at your fingertips!",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
   },
@@ -11,8 +14,18 @@
       "js": ["contentScript.js"]
     }
   ],
+  "web_accessible_resources": [
+    {
+      "resources": ["share.png", "widget.png", "delete.png"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "action": {
     "default_popup": "index.html"
   },
-  "permissions": ["storage"]
+  "icons": {
+    "16": "logo.png",
+    "48": "logo.png",
+    "128": "logo.png"
+  }
 }

@@ -17,6 +17,9 @@ html {
     color: #411f16;
   }
 
+  .bg-brand {
+    background-color: #ff6467;
+  }
   .text-brand {
     color: #f3ecdc;
   }
