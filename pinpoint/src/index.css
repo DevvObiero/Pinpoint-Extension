@@ -13,6 +13,9 @@ html {
   .bg-brand {
     background-color: #f3ecdc; /* Your custom color */
   }
+  .text-lataffa {
+    color: #411f16;
+  }
 
   .text-brand {
     color: #f3ecdc;
