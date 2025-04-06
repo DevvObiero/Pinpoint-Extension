@@ -1,29 +1,26 @@
-// Create widget element
-
-/// <reference types="chrome" />
-
 console.log("Pinpoint widget content script loaded!");
 
-// contentScript.js
+// Create widget
 const widget = document.createElement("img");
-widget.src = chrome.runtime.getURL("widget.png"); // Use the correct path to the image
+widget.src = chrome.runtime.getURL("widget.png");
 widget.id = "pinpoint-widget";
 document.body.appendChild(widget);
 
-// Style the widget
-widget.style.position = "fixed";
-widget.style.bottom = "20px";
-widget.style.right = "20px";
-widget.style.width = "48px";
-widget.style.height = "48px";
-widget.style.cursor = "pointer";
-widget.style.zIndex = "9999";
-widget.style.borderRadius = "50%";
-widget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.2)";
-widget.style.transition = "transform 0.2s ease-in-out";
-// widget.style.backgroundColor = "white";
+// Style widget
+Object.assign(widget.style, {
+  position: "fixed",
+  bottom: "20px",
+  right: "20px",
+  width: "48px",
+  height: "48px",
+  cursor: "pointer",
+  zIndex: "9999",
+  borderRadius: "50%",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+  transition: "transform 0.2s ease-in-out"
+});
 
-// Hover effect
+// Hover effects
 widget.addEventListener("mouseenter", () => {
   widget.style.transform = "scale(1.1)";
 });
@@ -31,77 +28,84 @@ widget.addEventListener("mouseleave", () => {
   widget.style.transform = "scale(1)";
 });
 
-// Click event (for now just log)
-widget.addEventListener("click", () => {
-  console.log("Widget clicked - ready to pin!");
-  // Here you could open a modal, store current URL, etc.
+// Pinning mode toggle
+let isPinning = false;
+widget.addEventListener("click", (e) => {
+  e.stopPropagation();
+  isPinning = !isPinning;
+  document.body.style.cursor = isPinning ? "crosshair" : "default";
+  widget.style.border = isPinning ? "3px solid brown" : "none";
+  console.log(
+    isPinning ? "Pinning mode activated." : "Pinning mode deactivated."
+  );
 });
 
-// Append to body
-document.body.appendChild(widget);
+// Smart word pinning logic
+document.addEventListener("click", (e) => {
+  if (!isPinning || e.target === widget || widget.contains(e.target)) return;
+  const range = document.caretRangeFromPoint(e.clientX, e.clientY);
 
-// settings
+  if (
+    !range ||
+    !range.startContainer ||
+    range.startContainer.nodeType !== Node.TEXT_NODE
+  )
+    return;
 
-// === SETTINGS PANEL === //
-const settingsPanel = document.createElement("div");
-settingsPanel.id = "pinpoint-settings";
-settingsPanel.style.position = "fixed";
-settingsPanel.style.bottom = "80px"; // above widget
-settingsPanel.style.right = "20px";
-settingsPanel.style.width = "220px";
-settingsPanel.style.padding = "12px";
-settingsPanel.style.backgroundColor = "#fff";
-settingsPanel.style.borderRadius = "10px";
-settingsPanel.style.boxShadow = "0 4px 10px rgba(0,0,0,0.15)";
-settingsPanel.style.zIndex = "9999";
-settingsPanel.style.display = "none"; // hidden by default
-settingsPanel.style.fontFamily = "sans-serif";
-settingsPanel.innerHTML = `
-  <strong style="font-size: 14px;">Settings</strong>
-  <hr style="margin: 8px 0;" />
-  <label style="display:block; margin-bottom: 8px;">
-    <input type="checkbox" id="toggle-widget" checked />
-    Show Widget
-  </label>
-  <label style="display:block; margin-bottom: 8px;">
-    <input type="range" id="opacity-range" min="0.2" max="1" step="0.1" value="1" />
-    Opacity
-  </label>
-  <button id="close-settings" style="margin-top: 10px; background:#eee; border:none; padding:6px 10px; border-radius:5px; cursor:pointer;">Close</button>
-`;
-document.body.appendChild(settingsPanel);
+  const textNode = range.startContainer;
+  const offset = range.startOffset;
 
-widget.addEventListener("click", () => {
-  // Toggle settings panel
-  if (settingsPanel.style.display === "none") {
-    settingsPanel.style.display = "block";
-  } else {
-    settingsPanel.style.display = "none";
-  }
-});
+  // Split text node around the clicked word
+  const textContent = textNode.textContent || "";
+  const before = textContent.slice(0, offset);
+  const after = textContent.slice(offset);
+  const wordMatch = after.match(/^\S+/); // Match first word from offset
 
-const toggleWidget = document.getElementById("toggle-widget");
-const opacityRange = document.getElementById("opacity-range");
-const closeSettings = document.getElementById("close-settings");
+  if (!wordMatch) return;
+  const word = wordMatch[0];
 
-// Show/hide widget
-toggleWidget.addEventListener("change", (e) => {
-  widget.style.display = e.target.checked ? "block" : "none";
-});
+  const span = document.createElement("span");
+  span.className = "pin-wrapper";
+  span.style.position = "relative";
+  span.textContent = word;
 
-// Adjust opacity
-opacityRange.addEventListener("input", (e) => {
-  widget.style.opacity = e.target.value;
-});
+  // Replace the word in the text node with span
+  const afterWord = after.slice(word.length);
+  const parent = textNode.parentNode;
+  const beforeNode = document.createTextNode(before);
+  const afterNode = document.createTextNode(afterWord);
 
-// Close settings panel
-closeSettings.addEventListener("click", () => {
-  settingsPanel.style.display = "none";
-});
+  parent?.replaceChild(afterNode, textNode);
+  parent?.insertBefore(span, afterNode);
+  parent?.insertBefore(beforeNode, span);
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "TOGGLE_SETTINGS") {
-    settingsPanel.style.display =
-      settingsPanel.style.display === "none" ? "block" : "none";
-  }
+  // Create and position the pin
+  const pin = document.createElement("img");
+  pin.src = chrome.runtime.getURL("./widget.png");
+  pin.alt = "Web Pin";
+  Object.assign(pin.style, {
+    position: "absolute",
+    top: "-10px",
+    left: "100%",
+    width: "20px",
+    height: "20px",
+    zIndex: "10000",
+    pointerEvents: "none",
+    transform: "translate(0, -50%)"
+  });
+
+  span.appendChild(pin);
+  console.log("Pin placed next to word:", word);
+
+  // Change widget border to green after pin is added
+  widget.style.border = "3px solid green"; // Change to green on successful pinning
+
+  // Optionally, reset the border after a delay (e.g., 1 second)
+  setTimeout(() => {
+    widget.style.border = "none";
+  }, 1000); // Reset border after 1 second
+
+  // Reset pinning mode
+  isPinning = false;
+  document.body.style.cursor = "default";
 });
