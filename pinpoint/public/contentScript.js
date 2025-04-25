@@ -25,15 +25,15 @@ Object.assign(widget.style, {
   boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
   transition: "transform 0.2s ease-in-out"
 });
-
-// Style dropdown
+//  dropdown
 Object.assign(dropdown.style, {
   position: "fixed",
   bottom: "80px",
   right: "20px",
   width: "200px",
   maxHeight: "150px",
-  backgroundColor: "#fff",
+  backgroundColor: "#333", // Darker background for contrast
+  color: "#fff", // White text for readability
   borderRadius: "8px",
   boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
   zIndex: "10000",
@@ -79,14 +79,14 @@ widget.addEventListener("click", (e) => {
 // Load and display recent pins
 function showRecentPins() {
   chrome.storage.local.get({ pins: [] }, (result) => {
-    const recentPins = result.pins.slice(-3).reverse(); // Get 3 most recent pins
+    const recentPins = result.pins.slice(-3).reverse();
     dropdown.innerHTML =
       recentPins.length === 0
-        ? "<p style='text-align: center; color: #666;'>No pins yet</p>"
+        ? "<p style='text-align: center; color: #fff;'>No pins yet</p>"
         : recentPins
             .map(
               (pin) => `
-          <div style='padding: 8px; border-bottom: 1px solid #eee; cursor: pointer;'
+          <div style='padding: 8px; border-bottom: 1px solid #555; cursor: pointer; color: #fff;'
                onclick='window.open("${pin.url}?pinId=${pin.id}", "_blank")'>
             <span style='font-size: 14px;'>${pin.word}</span>
           </div>
