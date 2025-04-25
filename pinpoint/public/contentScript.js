@@ -6,6 +6,12 @@ widget.src = chrome.runtime.getURL("widget.png");
 widget.id = "pinpoint-widget";
 document.body.appendChild(widget);
 
+// Create dropdown for recent pins
+const dropdown = document.createElement("div");
+dropdown.id = "pinpoint-dropdown";
+dropdown.style.display = "none";
+document.body.appendChild(dropdown);
+
 // Style widget
 Object.assign(widget.style, {
   position: "fixed",
@@ -20,12 +26,42 @@ Object.assign(widget.style, {
   transition: "transform 0.2s ease-in-out"
 });
 
-// Hover effects
+// Style dropdown
+Object.assign(dropdown.style, {
+  position: "fixed",
+  bottom: "80px",
+  right: "20px",
+  width: "200px",
+  maxHeight: "150px",
+  backgroundColor: "#fff",
+  borderRadius: "8px",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+  zIndex: "10000",
+  overflowY: "auto",
+  padding: "10px",
+  display: "none"
+});
+
+// Hover effects for widget
 widget.addEventListener("mouseenter", () => {
   widget.style.transform = "scale(1.1)";
+  showRecentPins();
 });
 widget.addEventListener("mouseleave", () => {
   widget.style.transform = "scale(1)";
+  setTimeout(() => {
+    if (!dropdown.matches(":hover")) {
+      dropdown.style.display = "none";
+    }
+  }, 200);
+});
+
+// Keep dropdown visible when hovered
+dropdown.addEventListener("mouseenter", () => {
+  dropdown.style.display = "block";
+});
+dropdown.addEventListener("mouseleave", () => {
+  dropdown.style.display = "none";
 });
 
 // Pinning mode toggle
@@ -39,6 +75,28 @@ widget.addEventListener("click", (e) => {
     isPinning ? "Pinning mode activated." : "Pinning mode deactivated."
   );
 });
+
+// Load and display recent pins
+function showRecentPins() {
+  chrome.storage.local.get({ pins: [] }, (result) => {
+    const recentPins = result.pins.slice(-3).reverse(); // Get 3 most recent pins
+    dropdown.innerHTML =
+      recentPins.length === 0
+        ? "<p style='text-align: center; color: #666;'>No pins yet</p>"
+        : recentPins
+            .map(
+              (pin) => `
+          <div style='padding: 8px; border-bottom: 1px solid #eee; cursor: pointer;'
+               onclick='window.open("${pin.url}?pinId=${pin.id}", "_blank")'>
+            <span style='font-size: 14px;'>${pin.word}</span>
+          </div>
+        `
+            )
+            .join("");
+    dropdown.style.display = "block";
+  });
+}
+
 function scrollWhenContentReady(selectorToWaitFor, callback) {
   const targetExists = () => document.querySelector(selectorToWaitFor);
 
@@ -52,7 +110,7 @@ function scrollWhenContentReady(selectorToWaitFor, callback) {
       setTimeout(() => {
         callback();
         observer.disconnect();
-      }, 300); // give it a sec to settle
+      }, 300);
     }
   });
 
@@ -79,8 +137,7 @@ function scrollToPinIfAvailable() {
       console.log("🔍 Scrolled to pinned location:", pin);
     };
 
-    // Wait for content to be "actually" ready
-    scrollWhenContentReady(".real-content", scroll); // CHANGE THIS SELECTOR!
+    scrollWhenContentReady(".real-content", scroll);
   });
 }
 
@@ -88,7 +145,7 @@ window.addEventListener("load", () => {
   setTimeout(scrollToPinIfAvailable, 500);
 });
 
-// Smart word pinning logic using manual splitting for consistency
+// Smart word pinning logic
 document.addEventListener("click", (e) => {
   if (!isPinning || e.target === widget || widget.contains(e.target)) return;
   const range = document.caretRangeFromPoint(e.clientX, e.clientY);
@@ -108,26 +165,22 @@ document.addEventListener("click", (e) => {
   if (!wordMatch) return;
   const word = wordMatch[0];
 
-  // Always use manual splitting to wrap the word in a span
   const parent = textNode.parentNode;
   if (!parent) return;
   const beforeNode = document.createTextNode(before);
   const wordNode = document.createTextNode(word);
   const afterNode = document.createTextNode(after.slice(word.length));
 
-  // Create a span to wrap the pinned word
   const span = document.createElement("span");
   span.className = "pin-wrapper";
   span.style.position = "relative";
   span.style.display = "inline";
   span.appendChild(wordNode);
 
-  // Replace the original text node with before, span, then after
   parent.replaceChild(afterNode, textNode);
   parent.insertBefore(span, afterNode);
   parent.insertBefore(beforeNode, span);
 
-  // Create and position the pin icon inside the span
   const pinImg = document.createElement("img");
   pinImg.src = chrome.runtime.getURL("widget.png");
   pinImg.alt = "Web Pin";
@@ -144,14 +197,12 @@ document.addEventListener("click", (e) => {
   span.appendChild(pinImg);
   console.log("Pin placed next to word:", word);
 
-  // Calculate absolute position for highlighting later
   const rect = span.getBoundingClientRect();
   const absoluteTop = rect.top + window.scrollY;
   const absoluteLeft = rect.left + window.scrollX;
 
-  // Create the pin object with all required info
   const newPin = {
-    id: Date.now(), // unique id
+    id: Date.now(),
     url: window.location.href,
     word: word,
     scrollY: window.scrollY,
@@ -159,7 +210,6 @@ document.addEventListener("click", (e) => {
     pinLeft: absoluteLeft
   };
 
-  // Retrieve existing pins and update storage
   chrome.storage.local.get({ pins: [] }, (result) => {
     const updatedPins = [...result.pins, newPin];
     chrome.storage.local.set({ pins: updatedPins }, () => {
@@ -167,18 +217,16 @@ document.addEventListener("click", (e) => {
     });
   });
 
-  // Provide visual feedback on the widget
   widget.style.border = "3px solid green";
   setTimeout(() => {
     widget.style.border = "none";
   }, 1000);
 
-  // Reset pinning mode
   isPinning = false;
   document.body.style.cursor = "default";
 });
 
-// On page load, check if a pin should be highlighted
+// Highlight pin on page load
 window.addEventListener("load", () => {
   const urlParams = new URLSearchParams(window.location.search);
   const pinId = urlParams.get("pinId");
@@ -186,7 +234,6 @@ window.addEventListener("load", () => {
     chrome.storage.local.get({ pins: [] }, (result) => {
       const pin = result.pins.find((p) => p.id.toString() === pinId);
       if (pin) {
-        // Create a visual marker to highlight the pin's location
         const marker = document.createElement("div");
         marker.style.position = "absolute";
         marker.style.top = `${pin.pinTop - 10}px`;
@@ -203,24 +250,18 @@ window.addEventListener("load", () => {
         marker.textContent = "Pinned Here!";
         document.body.appendChild(marker);
 
-        // Scroll to the pin position smoothly
-        // Try to scroll inside the ChatGPT container if it exists
         const scrollContainer = document.querySelector("main .overflow-y-auto");
-
         if (scrollContainer) {
           scrollContainer.scrollTo({ top: pin.scrollY, behavior: "smooth" });
           console.log("Scrolled ChatGPT container.");
         } else {
-          // Fallback to scrolling the whole page
           window.scrollTo({ top: pin.scrollY, behavior: "smooth" });
           console.log("Fallback to window scroll.");
         }
 
-        // Remove the marker after 1.3 seconds
         setTimeout(() => {
           marker.remove();
         }, 1300);
-        // Clean up URL query parameters so repeated clicks trigger the marker again
         window.history.replaceState(
           {},
           document.title,
