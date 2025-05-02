@@ -16,7 +16,13 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["share.png", "widget.png", "delete.png"],
+      "resources": [
+        "share.png",
+        "widget.png",
+        "delete.png",
+        "pdf.js",
+        "pdf.worker.js"
+      ],
       "matches": ["<all_urls>"]
     }
   ],
