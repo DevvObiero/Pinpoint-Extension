@@ -2,9 +2,12 @@
   "manifest_version": 3,
   "name": "Pinpoint Extension",
   "version": "1.0",
-  "description": "Pin important sections of any webpage with a single click—no more scrolling. Your key moments, always at your fingertips!",
-  "permissions": ["storage", "tabs"],
-  "host_permissions": ["<all_urls>"],
+  "description": "Organizes Chrome highlight links in a widget for quick access",
+  "permissions": [
+    "storage",
+    "tabs",
+    "clipboardRead"
+  ],
   "background": {
     "service_worker": "background.js"
   },
@@ -17,11 +20,9 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "share.png",
         "widget.png",
-        "delete.png",
-        "pdf.js",
-        "pdf.worker.js"
+        "share.png",
+        "delete.png"
       ],
       "matches": ["<all_urls>"]
     }
