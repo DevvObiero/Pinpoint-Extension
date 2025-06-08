@@ -7,8 +7,7 @@ function App() {
   const [pins, setPins] = useState([]);
   const [settingsVisible, setSettingsVisible] = useState(false);
 
-  const savedBackgroundColor =
-    localStorage.getItem("backgroundColor") || "#ffffff";
+  const savedBackgroundColor = localStorage.getItem("backgroundColor") || "#ffffff";
   const savedTextColor = localStorage.getItem("textColor") || "#000000";
 
   const [settings, setSettings] = useState({
@@ -35,8 +34,37 @@ function App() {
     });
   };
 
+  const saveHighlight = async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      console.log("Clipboard text from button:", clipboardText);
+      if (clipboardText.includes("#:~:text=")) {
+        const newPin = {
+          id: Date.now(),
+          url: clipboardText,
+          text: decodeURIComponent(clipboardText.split("#:~:text=")[1]).slice(0, 50),
+          title: "Manual Pin",
+          platform: "webpage",
+          timestamp: new Date().toISOString()
+        };
+        chrome.storage.local.get({ pins: [] }, (result) => {
+          const updatedPins = [...result.pins, newPin];
+          chrome.storage.local.set({ pins: updatedPins }, () => {
+            console.log("Manual pin saved:", newPin);
+            setPins(updatedPins);
+          });
+        });
+      } else {
+        console.log("No highlight link in clipboard");
+      }
+    } catch (err) {
+      console.error("Clipboard read error:", err);
+    }
+  };
+
   useEffect(() => {
     chrome.storage.local.get({ pins: [] }, (result) => {
+      console.log("Pins loaded in popup:", result.pins);
       setPins(result.pins);
     });
 
@@ -53,8 +81,7 @@ function App() {
   }, []);
 
   const openPinLink = (pin) => {
-    const urlWithPin = `${pin.url}?pinId=${pin.id}`;
-    chrome.tabs.create({ url: urlWithPin });
+    chrome.tabs.create({ url: pin.url });
   };
 
   const sharePin = (pin) => {
@@ -89,28 +116,36 @@ function App() {
         </button>
       </div>
 
+      <button
+        className="w-full bg-blue-500 text-white py-2 rounded-md mb-4"
+        onClick={saveHighlight}
+      >
+        Save Highlight Link
+      </button>
+
       {pins.length === 0 ? (
-        <p className="text-center text-gray-500">No pins yet</p>
+        <p className="text-center text-gray-500">No highlight links yet</p>
       ) : (
         <div className="space-y-3">
           {pins
-            .slice(-3)
+            .slice(-5)
             .reverse()
             .map((pin, index) => (
               <div
                 key={pin.id}
-                className="bg-gray-100 dark:bg-red-800 p-3 rounded-md flex justify-between items-center hover:bg-gray-200 dark:hover:bg-gray-700 transition cursor-pointer"
+                className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md flex justify-between items-start hover:bg-gray-200 dark:hover:bg-gray-700 transition cursor-pointer"
                 onClick={() => openPinLink(pin)}
               >
-                <span>
-                  Pin {index + 1}: {pin.word}
-                </span>
+                <div className="flex-1">
+                  <span className="text-sm font-bold block">{pin.title || "Untitled Page"}</span>
+                  <span className="text-xs text-gray-500">
+                    {pin.text.slice(0, 50)}{pin.text.length > 50 ? "..." : ""}
+                  </span>
+                </div>
                 <div className="flex items-center gap-2">
                   <button disabled={!isPremium} title="Rename (Premium only)">
                     <FiEdit
-                      className={`w-4 h-4 ${
-                        !isPremium ? "opacity-30 cursor-not-allowed" : ""
-                      }`}
+                      className={`w-4 h-4 ${!isPremium ? "opacity-30 cursor-not-allowed" : ""}`}
                     />
                   </button>
                   <button

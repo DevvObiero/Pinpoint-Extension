@@ -1,16 +1,16 @@
-console.log("Pinpoint widget content script loaded!");
+console.log("Pinpoint Extension content script loaded!");
 
 // Create widget
 const widget = document.createElement("img");
-widget.src = chrome.runtime.getURL("widget.png");
 widget.id = "pinpoint-widget";
+try {
+  widget.src = chrome.runtime.getURL("widget.png");
+  console.log("Widget src set to widget.png");
+} catch (e) {
+  widget.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABYSURBVDhPY2AYBaNgFIyCUTAKRsEoGAWjYBSMglEwCkbBKBgFo2AUjIJRMApGwSgYBaNgFIyCUTAKRsEoGAWjYBSMglEwCkbBKBgFo2AUjIJRMApGwSgYBQMA1WNLv9y3zUcAAAAASUVORK5CYII=";
+  console.log("Widget src set to fallback base64 due to error:", e);
+}
 document.body.appendChild(widget);
-
-// Create dropdown for recent pins
-const dropdown = document.createElement("div");
-dropdown.id = "pinpoint-dropdown";
-dropdown.style.display = "none";
-document.body.appendChild(dropdown);
 
 // Style widget
 Object.assign(widget.style, {
@@ -25,27 +25,34 @@ Object.assign(widget.style, {
   boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
   transition: "transform 0.2s ease-in-out"
 });
-//  dropdown
+
+// Create dropdown
+const dropdown = document.createElement("div");
+dropdown.id = "pinpoint-dropdown";
+dropdown.style.display = "none";
+document.body.appendChild(dropdown);
+
+// Style dropdown
 Object.assign(dropdown.style, {
   position: "fixed",
   bottom: "80px",
   right: "20px",
-  width: "200px",
-  maxHeight: "150px",
-  backgroundColor: "#333", // Darker background for contrast
-  color: "#fff", // White text for readability
+  width: "250px",
+  maxHeight: "200px",
+  backgroundColor: "#333",
+  color: "#fff",
   borderRadius: "8px",
   boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
   zIndex: "10000",
   overflowY: "auto",
-  padding: "10px",
-  display: "none"
+  padding: "10px"
 });
 
-// Hover effects for widget
+// Widget hover effects
 widget.addEventListener("mouseenter", () => {
   widget.style.transform = "scale(1.1)";
   showRecentPins();
+  console.log("Widget mouseenter");
 });
 widget.addEventListener("mouseleave", () => {
   widget.style.transform = "scale(1)";
@@ -54,6 +61,7 @@ widget.addEventListener("mouseleave", () => {
       dropdown.style.display = "none";
     }
   }, 200);
+  console.log("Widget mouseleave");
 });
 
 // Keep dropdown visible when hovered
@@ -64,210 +72,66 @@ dropdown.addEventListener("mouseleave", () => {
   dropdown.style.display = "none";
 });
 
-// Pinning mode toggle
-let isPinning = false;
-widget.addEventListener("click", (e) => {
-  e.stopPropagation();
-  isPinning = !isPinning;
-  document.body.style.cursor = isPinning ? "crosshair" : "default";
-  widget.style.border = isPinning ? "3px solid brown" : "none";
-  console.log(
-    isPinning ? "Pinning mode activated." : "Pinning mode deactivated."
-  );
-});
-
-// Load and display recent pins
+// Show recent pins
 function showRecentPins() {
   chrome.storage.local.get({ pins: [] }, (result) => {
-    const recentPins = result.pins.slice(-3).reverse();
-    dropdown.innerHTML =
-      recentPins.length === 0
-        ? "<p style='text-align: center; color: #fff;'>No pins yet</p>"
-        : recentPins
-            .map(
-              (pin) => `
+    console.log("Loaded pins in dropdown:", result.pins);
+    const recentPins = result.pins.slice(-5).reverse();
+    dropdown.innerHTML = recentPins.length === 0
+      ? "<p style='text-align: center; color: #fff;'>No highlight links yet</p>"
+      : recentPins.map(pin => `
           <div style='padding: 8px; border-bottom: 1px solid #555; cursor: pointer; color: #fff;'
-               onclick='window.open("${pin.url}?pinId=${pin.id}", "_blank")'>
-            <span style='font-size: 14px;'>${pin.word}</span>
+               onclick='window.open("${pin.url}", "_blank")'>
+            <span style='font-size: 14px; display: block; font-weight: bold;'>${pin.title || "Untitled Page"}</span>
+            <span style='font-size: 12px; color: #bbb;'>${pin.text.slice(0, 50)}${pin.text.length > 50 ? "..." : ""}</span>
           </div>
-        `
-            )
-            .join("");
+        `).join("");
     dropdown.style.display = "block";
   });
 }
 
-function scrollWhenContentReady(selectorToWaitFor, callback) {
-  const targetExists = () => document.querySelector(selectorToWaitFor);
-
-  if (targetExists()) {
-    callback();
-    return;
-  }
-
-  const observer = new MutationObserver(() => {
-    if (targetExists()) {
-      setTimeout(() => {
-        callback();
-        observer.disconnect();
-      }, 300);
-    }
-  });
-
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
-}
-
-function scrollToPinIfAvailable() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const pinId = urlParams.get("pinId");
-  if (!pinId) return;
-
-  chrome.storage.local.get({ pins: [] }, (result) => {
-    const pin = result.pins.find((p) => p.id.toString() === pinId);
-    if (!pin || !window.location.href.includes(pin.url)) return;
-
-    const scroll = () => {
-      window.scrollTo({
-        top: pin.scrollY,
-        behavior: "smooth"
-      });
-      console.log("🔍 Scrolled to pinned location:", pin);
+// Capture highlight links directly from copy event
+document.addEventListener("copy", (e) => {
+  console.log("Copy event triggered");
+  const clipboardText = e.clipboardData.getData('text');
+  console.log("Clipboard text from copy event:", clipboardText);
+  const selection = window.getSelection();
+  const selectedText = selection ? selection.toString().trim() : "";
+  console.log("Selected text:", selectedText);
+  if (clipboardText.includes("#:~:text=")) {
+    const pageTitle = document.title || "Untitled Page";
+    console.log("Highlight link detected:", clipboardText);
+    console.log("Page title:", pageTitle);
+    const newPin = {
+      id: Date.now(),
+      url: clipboardText,
+      text: selectedText,
+      title: pageTitle,
+      platform: "webpage",
+      timestamp: new Date().toISOString()
     };
-
-    scrollWhenContentReady(".real-content", scroll);
-  });
-}
-
-window.addEventListener("load", () => {
-  setTimeout(scrollToPinIfAvailable, 500);
-});
-
-// Smart word pinning logic
-document.addEventListener("click", (e) => {
-  if (!isPinning || e.target === widget || widget.contains(e.target)) return;
-  const range = document.caretRangeFromPoint(e.clientX, e.clientY);
-  if (
-    !range ||
-    !range.startContainer ||
-    range.startContainer.nodeType !== Node.TEXT_NODE
-  )
-    return;
-
-  const textNode = range.startContainer;
-  const offset = range.startOffset;
-  const textContent = textNode.textContent || "";
-  const before = textContent.slice(0, offset);
-  const after = textContent.slice(offset);
-  const wordMatch = after.match(/^\S+/);
-  if (!wordMatch) return;
-  const word = wordMatch[0];
-
-  const parent = textNode.parentNode;
-  if (!parent) return;
-  const beforeNode = document.createTextNode(before);
-  const wordNode = document.createTextNode(word);
-  const afterNode = document.createTextNode(after.slice(word.length));
-
-  const span = document.createElement("span");
-  span.className = "pin-wrapper";
-  span.style.position = "relative";
-  span.style.display = "inline";
-  span.appendChild(wordNode);
-
-  parent.replaceChild(afterNode, textNode);
-  parent.insertBefore(span, afterNode);
-  parent.insertBefore(beforeNode, span);
-
-  const pinImg = document.createElement("img");
-  pinImg.src = chrome.runtime.getURL("widget.png");
-  pinImg.alt = "Web Pin";
-  Object.assign(pinImg.style, {
-    position: "absolute",
-    top: "-10px",
-    left: "100%",
-    width: "20px",
-    height: "20px",
-    zIndex: "10000",
-    pointerEvents: "none",
-    transform: "translate(0, -50%)"
-  });
-  span.appendChild(pinImg);
-  console.log("Pin placed next to word:", word);
-
-  const rect = span.getBoundingClientRect();
-  const absoluteTop = rect.top + window.scrollY;
-  const absoluteLeft = rect.left + window.scrollX;
-
-  const newPin = {
-    id: Date.now(),
-    url: window.location.href,
-    word: word,
-    scrollY: window.scrollY,
-    pinTop: absoluteTop,
-    pinLeft: absoluteLeft
-  };
-
-  chrome.storage.local.get({ pins: [] }, (result) => {
-    const updatedPins = [...result.pins, newPin];
-    chrome.storage.local.set({ pins: updatedPins }, () => {
-      console.log("Pin saved:", newPin);
-    });
-  });
-
-  widget.style.border = "3px solid green";
-  setTimeout(() => {
-    widget.style.border = "none";
-  }, 1000);
-
-  isPinning = false;
-  document.body.style.cursor = "default";
-});
-
-// Highlight pin on page load
-window.addEventListener("load", () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const pinId = urlParams.get("pinId");
-  if (pinId) {
     chrome.storage.local.get({ pins: [] }, (result) => {
-      const pin = result.pins.find((p) => p.id.toString() === pinId);
-      if (pin) {
-        const marker = document.createElement("div");
-        marker.style.position = "absolute";
-        marker.style.top = `${pin.pinTop - 10}px`;
-        marker.style.left = `${pin.pinLeft - 10}px`;
-        marker.style.width = "120px";
-        marker.style.height = "40px";
-        marker.style.backgroundColor = "rgba(255, 255, 0, 0.3)";
-        marker.style.border = "2px solid orange";
-        marker.style.zIndex = "100000";
-        marker.style.pointerEvents = "none";
-        marker.style.display = "flex";
-        marker.style.alignItems = "center";
-        marker.style.justifyContent = "center";
-        marker.textContent = "Pinned Here!";
-        document.body.appendChild(marker);
-
-        const scrollContainer = document.querySelector("main .overflow-y-auto");
-        if (scrollContainer) {
-          scrollContainer.scrollTo({ top: pin.scrollY, behavior: "smooth" });
-          console.log("Scrolled ChatGPT container.");
+      console.log("Current pins before save:", result.pins);
+      const updatedPins = [...result.pins, newPin];
+      chrome.storage.local.set({ pins: updatedPins }, () => {
+        if (chrome.runtime.lastError) {
+          console.error("Storage save error:", chrome.runtime.lastError);
         } else {
-          window.scrollTo({ top: pin.scrollY, behavior: "smooth" });
-          console.log("Fallback to window scroll.");
+          console.log("Highlight link saved:", newPin);
+          
+          showRecentPins();
         }
-
-        setTimeout(() => {
-          marker.remove();
-        }, 1300);
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname
-        );
-      }
+      });
     });
+  } else {
+    console.log("No highlight link in clipboard text");
   }
 });
+
+// Initialize
+window.addEventListener("load", () => {
+  console.log("Page loaded");
+  showRecentPins();
+});
+
+// uji 
