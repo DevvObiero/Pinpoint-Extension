@@ -1,5 +1,7 @@
-// background.js example
-chrome.runtime.onInstalled.addListener(() => {
-  // Background script works with chrome API
-  console.log(chrome.runtime.getURL("widget.png"));
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "openPin") {
+    console.log("Received openPin request:", request.url);
+    chrome.tabs.create({ url: request.url });
+  }
 });

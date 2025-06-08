@@ -6,6 +6,8 @@ import "./App.css";
 function App() {
   const [pins, setPins] = useState([]);
   const [settingsVisible, setSettingsVisible] = useState(false);
+  const [editingPinId, setEditingPinId] = useState(null);
+  const [newTitle, setNewTitle] = useState("");
 
   const savedBackgroundColor = localStorage.getItem("backgroundColor") || "#ffffff";
   const savedTextColor = localStorage.getItem("textColor") || "#000000";
@@ -43,7 +45,7 @@ function App() {
           id: Date.now(),
           url: clipboardText,
           text: decodeURIComponent(clipboardText.split("#:~:text=")[1]).slice(0, 50),
-          title: "PinPoint",
+          title: "Manual Pin",
           platform: "webpage",
           timestamp: new Date().toISOString()
         };
@@ -60,6 +62,30 @@ function App() {
     } catch (err) {
       console.error("Clipboard read error:", err);
     }
+  };
+
+  const startEditing = (pin) => {
+    setEditingPinId(pin.id);
+    setNewTitle(pin.title || "Untitled Page");
+  };
+
+  const saveNewTitle = (pinId) => {
+    chrome.storage.local.get({ pins: [] }, (result) => {
+      const updatedPins = result.pins.map((p) =>
+        p.id === pinId ? { ...p, title: newTitle } : p
+      );
+      chrome.storage.local.set({ pins: updatedPins }, () => {
+        setPins(updatedPins);
+        setEditingPinId(null);
+        setNewTitle("");
+        console.log("Pin title updated:", { id: pinId, title: newTitle });
+      });
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingPinId(null);
+    setNewTitle("");
   };
 
   useEffect(() => {
@@ -137,16 +163,55 @@ function App() {
                 onClick={() => openPinLink(pin)}
               >
                 <div className="flex-1">
-                  <span className="text-sm font-bold block">{pin.title || "Untitled Page"}</span>
-                  <span className="text-xs text-gray-500">
-                    {pin.text.slice(0, 50)}{pin.text.length > 50 ? "..." : ""}
-                  </span>
+                  {editingPinId === pin.id ? (
+                    <div className="flex flex-col gap-2">
+                      <input
+                        type="text"
+                        value={newTitle}
+                        onChange={(e) => setNewTitle(e.target.value)}
+                        className="text-sm p-1 rounded"
+                        style={{ color: settings.textColor }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          className="text-xs bg-green-500 text-white px-2 py-1 rounded"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            saveNewTitle(pin.id);
+                          }}
+                        >
+                          Save
+                        </button>
+                        <button
+                          className="text-xs bg-red-500 text-white px-2 py-1 rounded"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            cancelEditing();
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="text-sm font-bold block">{pin.title || "Untitled Page"}</span>
+                      <span className="text-xs text-gray-500">
+                        {pin.text.slice(0, 50)}{pin.text.length > 50 ? "..." : ""}
+                      </span>
+                    </>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button disabled={!isPremium} title="Rename (Premium only)">
-                    <FiEdit
-                      className={`w-4 h-4 ${!isPremium ? "opacity-30 cursor-not-allowed" : ""}`}
-                    />
+                  <button
+                    title="Rename"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startEditing(pin);
+                    }}
+                  >
+                    <FiEdit className="w-4 h-4" />
                   </button>
                   <button
                     title="Share"
