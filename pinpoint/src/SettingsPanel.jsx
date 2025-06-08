@@ -32,7 +32,7 @@ function SettingsPanel({ onClose, onChangeSettings }) {
         top: "20%",
         left: "50%",
         transform: "translateX(-50%)",
-        backgroundColor: "bg-brand",
+        backgroundColor: "black",
         padding: "30px",
         borderRadius: "12px",
         boxShadow: "0 10px 15px rgba(0, 0, 0, 0.2)",
@@ -115,7 +115,7 @@ function SettingsPanel({ onClose, onChangeSettings }) {
           onClick={onClose}
           style={{
             padding: "10px 20px",
-            backgroundColor: "#4CAF50",
+            backgroundColor: "brown",
             color: "#fff",
             fontSize: "16px",
             border: "none",

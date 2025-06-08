@@ -143,7 +143,7 @@ function App() {
       </div>
 
       <button
-        className="w-full bg-blue-500 text-white py-2 rounded-md mb-4"
+        className="w-full bg-[#8B4513] text-white py-2 rounded-md mb-4"
         onClick={saveHighlight}
       >
         Save Highlight Link
@@ -159,7 +159,7 @@ function App() {
             .map((pin, index) => (
               <div
                 key={pin.id}
-                className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md flex justify-between items-start hover:bg-gray-200 dark:hover:bg-gray-700 transition cursor-pointer"
+                className="bg-[#8B4513] p-3 rounded-md flex justify-between items-start hover:bg-[#5C2F0D] transition cursor-pointer"
                 onClick={() => openPinLink(pin)}
               >
                 <div className="flex-1">
@@ -196,8 +196,8 @@ function App() {
                     </div>
                   ) : (
                     <>
-                      <span className="text-sm font-bold block">{pin.title || "Untitled Page"}</span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-sm font-bold block text-white">{pin.title || "Untitled Page"}</span>
+                      <span className="text-xs text-gray-300">
                         {pin.text.slice(0, 50)}{pin.text.length > 50 ? "..." : ""}
                       </span>
                     </>
@@ -211,7 +211,7 @@ function App() {
                       startEditing(pin);
                     }}
                   >
-                    <FiEdit className="w-4 h-4" />
+                    <FiEdit className="w-4 h-4 text-white" />
                   </button>
                   <button
                     title="Share"
@@ -220,7 +220,7 @@ function App() {
                       sharePin(pin);
                     }}
                   >
-                    <FiShare2 className="w-4 h-4" />
+                    <FiShare2 className="w-4 h-4 text-white" />
                   </button>
                   <button
                     title="Delete"
@@ -229,7 +229,7 @@ function App() {
                       deletePin(pin.id);
                     }}
                   >
-                    <FiTrash className="w-4 h-4" />
+                    <FiTrash className="w-4 h-4 text-white" />
                   </button>
                 </div>
               </div>
