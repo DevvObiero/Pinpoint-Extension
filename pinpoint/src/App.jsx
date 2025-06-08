@@ -45,7 +45,7 @@ function App() {
           id: Date.now(),
           url: clipboardText,
           text: decodeURIComponent(clipboardText.split("#:~:text=")[1]).slice(0, 50),
-          title: "Manual Pin",
+          title: "PinPoint",
           platform: "webpage",
           timestamp: new Date().toISOString()
         };
