@@ -138,7 +138,7 @@ function App() {
 
   return (
     <div
-      className="w-[320px] h-[500px] rounded-lg shadow-md p-4"
+      className="w-[320px] h-[500px] rounded-lg shadow-md p-4 flex flex-col"
       style={{
         backgroundColor: settings.backgroundColor,
         color: settings.textColor
@@ -161,9 +161,9 @@ function App() {
       </button>
 
       {pins.length === 0 ? (
-        <p className="text-center text-gray-500">No highlight links yet</p>
+        <p className="text-center text-gray-500 flex-grow">No highlight links yet</p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 overflow-y-auto flex-grow custom-scrollbar">
           {pins
             .slice(-5)
             .reverse()
