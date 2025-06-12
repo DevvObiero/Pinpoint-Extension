@@ -6,7 +6,7 @@ html {
   padding: 0;
   width: 100%;
   height: 100%;
-  background-color: #412019;
+  background-color: var(--app-bg, #000000); /* Default to black, overridden by JS */
   border-radius: 5px;
 }
 @layer utilities {
@@ -30,7 +30,7 @@ html {
 }
 
 body {
-  @apply m-0 p-0 bg-[#F3ECDC] overflow-hidden flex items-center justify-center;
+  @apply m-0 p-0 bg-[#F3ECDC] overflow-hidden;
   width: 100%;
   height: 100%;
 }

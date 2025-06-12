@@ -30,6 +30,7 @@ function App() {
     const newBackground = newMode ? "#000000" : "#F5F5DC";
     localStorage.setItem("backgroundColor", newBackground);
     setSettings((prev) => ({ ...prev, backgroundColor: newBackground }));
+    document.documentElement.style.setProperty('--app-bg', newBackground); // Sync background
   };
 
   const updateSettings = (newSettings) => {
@@ -37,6 +38,7 @@ function App() {
       const updatedSettings = { ...prevSettings, ...newSettings };
       if (newSettings.backgroundColor) {
         localStorage.setItem("backgroundColor", newSettings.backgroundColor);
+        document.documentElement.style.setProperty('--app-bg', newSettings.backgroundColor); // Sync with settings
       }
       if (newSettings.textColor) {
         localStorage.setItem("textColor", newSettings.textColor);
