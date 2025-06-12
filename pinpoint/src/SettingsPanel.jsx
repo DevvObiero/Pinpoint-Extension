@@ -1,28 +1,32 @@
 import React, { useState, useEffect } from "react";
 
-function SettingsPanel({ onClose, onChangeSettings }) {
-  // Get saved colors from localStorage or set defaults
-  const savedBackgroundColor =
-    localStorage.getItem("backgroundColor") || "#ffffff";
-  const savedTextColor = localStorage.getItem("textColor") || "#000000";
+function SettingsPanel({ onClose, onChangeSettings, darkMode, toggleDarkMode }) {
+  const savedBackgroundColor = localStorage.getItem("backgroundColor") || (darkMode ? "#000000" : "#F5F5DC");
+  const savedTextColor = localStorage.getItem("textColor") || (darkMode ? "#FFFFFF" : "#000000");
 
   const [backgroundColor, setBackgroundColor] = useState(savedBackgroundColor);
   const [textColor, setTextColor] = useState(savedTextColor);
 
-  // Handle background color change
+  useEffect(() => {
+    const newBackground = darkMode ? "#000000" : "#F5F5DC";
+    const newTextColor = darkMode ? "#FFFFFF" : "#000000";
+    setBackgroundColor(newBackground);
+    setTextColor(newTextColor);
+    onChangeSettings({ backgroundColor: newBackground, textColor: newTextColor });
+  }, [darkMode, onChangeSettings]);
+
   const handleBackgroundChange = (e) => {
     const newColor = e.target.value;
     setBackgroundColor(newColor);
     onChangeSettings({ backgroundColor: newColor });
-    localStorage.setItem("backgroundColor", newColor); // Save to localStorage
+    localStorage.setItem("backgroundColor", newColor);
   };
 
-  // Handle text color change
   const handleTextColorChange = (e) => {
     const newColor = e.target.value;
     setTextColor(newColor);
     onChangeSettings({ textColor: newColor });
-    localStorage.setItem("textColor", newColor); // Save to localStorage
+    localStorage.setItem("textColor", newColor);
   };
 
   return (
@@ -32,7 +36,8 @@ function SettingsPanel({ onClose, onChangeSettings }) {
         top: "20%",
         left: "50%",
         transform: "translateX(-50%)",
-        backgroundColor: "black",
+        backgroundColor: backgroundColor,
+        color: textColor,
         padding: "30px",
         borderRadius: "12px",
         boxShadow: "0 10px 15px rgba(0, 0, 0, 0.2)",
@@ -52,11 +57,7 @@ function SettingsPanel({ onClose, onChangeSettings }) {
       >
         Settings
       </h3>
-      <div
-        style={{
-          marginBottom: "20px"
-        }}
-      >
+      <div style={{ marginBottom: "20px" }}>
         <label
           style={{
             fontSize: "16px",
@@ -104,18 +105,12 @@ function SettingsPanel({ onClose, onChangeSettings }) {
           }}
         />
       </div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          marginTop: "30px"
-        }}
-      >
+      <div style={{ display: "flex", justifyContent: "center", marginTop: "30px" }}>
         <button
           onClick={onClose}
           style={{
             padding: "10px 20px",
-            backgroundColor: "brown",
+            backgroundColor: "#A52A2A",
             color: "#fff",
             fontSize: "16px",
             border: "none",

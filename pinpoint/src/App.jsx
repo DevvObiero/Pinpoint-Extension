@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FiSettings, FiUser, FiEdit, FiShare2, FiTrash } from "react-icons/fi";
+import { FiSettings, FiEdit, FiShare2, FiTrash, FiMoon, FiSun } from "react-icons/fi";
 import SettingsPanel from "./SettingsPanel";
 import "./App.css";
 
@@ -8,8 +8,9 @@ function App() {
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [editingPinId, setEditingPinId] = useState(null);
   const [newTitle, setNewTitle] = useState("");
+  const [darkMode, setDarkMode] = useState(false);
 
-  const savedBackgroundColor = localStorage.getItem("backgroundColor") || "#ffffff";
+  const savedBackgroundColor = localStorage.getItem("backgroundColor") || (darkMode ? "#000000" : "#F5F5DC");
   const savedTextColor = localStorage.getItem("textColor") || "#000000";
 
   const [settings, setSettings] = useState({
@@ -21,6 +22,14 @@ function App() {
 
   const toggleSettings = () => {
     setSettingsVisible((prevState) => !prevState);
+  };
+
+  const toggleDarkMode = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    const newBackground = newMode ? "#000000" : "#F5F5DC";
+    localStorage.setItem("backgroundColor", newBackground);
+    setSettings((prev) => ({ ...prev, backgroundColor: newBackground }));
   };
 
   const updateSettings = (newSettings) => {
@@ -137,8 +146,8 @@ function App() {
         <button onClick={toggleSettings}>
           <FiSettings className="w-5 h-5" />
         </button>
-        <button>
-          <FiUser className="w-5 h-5" />
+        <button onClick={toggleDarkMode}>
+          {darkMode ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
         </button>
       </div>
 
@@ -241,6 +250,8 @@ function App() {
         <SettingsPanel
           onClose={toggleSettings}
           onChangeSettings={updateSettings}
+          darkMode={darkMode}
+          toggleDarkMode={toggleDarkMode}
         />
       )}
     </div>
