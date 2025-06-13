@@ -10,8 +10,8 @@ function App() {
   const [newTitle, setNewTitle] = useState("");
   const [darkMode, setDarkMode] = useState(false);
 
-  const savedBackgroundColor = localStorage.getItem("backgroundColor") || (darkMode ? "#000000" : "#F5F5DC");
-  const savedTextColor = localStorage.getItem("textColor") || "#000000";
+  const savedBackgroundColor = localStorage.getItem("backgroundColor") || (darkMode ? "#3C0366" : "#FFA2A4"); // Updated to match palette
+  const savedTextColor = localStorage.getItem("textColor") || "#FFFFFF"; // Default to white for contrast
 
   const [settings, setSettings] = useState({
     backgroundColor: savedBackgroundColor,
@@ -27,7 +27,7 @@ function App() {
   const toggleDarkMode = () => {
     const newMode = !darkMode;
     setDarkMode(newMode);
-    const newBackground = newMode ? "#000000" : "#F5F5DC";
+    const newBackground = newMode ? "#3C0366" : "#FFA2A4"; // Match website palette
     localStorage.setItem("backgroundColor", newBackground);
     setSettings((prev) => ({ ...prev, backgroundColor: newBackground }));
     document.documentElement.style.setProperty('--app-bg', newBackground); // Sync background
@@ -154,7 +154,7 @@ function App() {
       </div>
 
       <button
-        className="w-full bg-[#8B4513] text-white py-2 rounded-md mb-4"
+        className="w-full bg-[#FF6467] text-white py-2 rounded-md mb-4" // Updated to match palette
         onClick={saveHighlight}
       >
         Save Highlight Link
@@ -170,7 +170,7 @@ function App() {
             .map((pin, index) => (
               <div
                 key={pin.id}
-                className="bg-[#8B4513] p-3 rounded-md flex justify-between items-start hover:bg-[#5C2F0D] transition cursor-pointer"
+                className="bg-[#FF6467] p-3 rounded-md flex justify-between items-start hover:bg-[#D94E50] transition cursor-pointer" // Updated to match palette
                 onClick={() => openPinLink(pin)}
               >
                 <div className="flex-1">
@@ -186,7 +186,7 @@ function App() {
                       />
                       <div className="flex gap-2">
                         <button
-                          className="text-xs bg-green-500 text-white px-2 py-1 rounded"
+                          className="text-xs bg-[#3C0366] text-white px-2 py-1 rounded" // Updated to match palette
                           onClick={(e) => {
                             e.stopPropagation();
                             saveNewTitle(pin.id);
@@ -195,7 +195,7 @@ function App() {
                           Save
                         </button>
                         <button
-                          className="text-xs bg-red-500 text-white px-2 py-1 rounded"
+                          className="text-xs bg-[#3C0366] text-white px-2 py-1 rounded" // Updated to match palette
                           onClick={(e) => {
                             e.stopPropagation();
                             cancelEditing();
