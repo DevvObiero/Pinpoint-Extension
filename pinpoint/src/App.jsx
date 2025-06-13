@@ -10,7 +10,7 @@ function App() {
   const [newTitle, setNewTitle] = useState("");
   const [darkMode, setDarkMode] = useState(false);
 
-  const savedBackgroundColor = localStorage.getItem("backgroundColor") || (darkMode ? "#3C0366" : "#F5F5DC"); // Changed to beige
+  const savedBackgroundColor = localStorage.getItem("backgroundColor") || (darkMode ? "#000000" : "#F5F5DC"); // Changed to black for dark mode
   const savedTextColor = localStorage.getItem("textColor") || "#FFFFFF"; // Default to white for contrast
 
   const [settings, setSettings] = useState({
@@ -27,7 +27,7 @@ function App() {
   const toggleDarkMode = () => {
     const newMode = !darkMode;
     setDarkMode(newMode);
-    const newBackground = newMode ? "#3C0366" : "#F5F5DC"; // Changed to beige
+    const newBackground = newMode ? "#000000" : "#F5F5DC"; // Changed to black for dark mode
     localStorage.setItem("backgroundColor", newBackground);
     setSettings((prev) => ({ ...prev, backgroundColor: newBackground }));
     document.documentElement.style.setProperty('--app-bg', newBackground); // Sync background
@@ -154,7 +154,7 @@ function App() {
       </div>
 
       <button
-        className="w-full bg-[#FF6467] text-white py-2 rounded-md mb-4" // Kept as pink
+        className="w-full bg-[#FF6467] text-white py-2 rounded-md mb-4"
         onClick={saveHighlight}
       >
         Save Highlight Link
@@ -170,7 +170,7 @@ function App() {
             .map((pin, index) => (
               <div
                 key={pin.id}
-                className="bg-[#FF6467] p-3 rounded-md flex justify-between items-start hover:bg-[#D94E50] transition cursor-pointer" // Kept as pink
+                className="bg-[#FF6467] p-3 rounded-md flex justify-between items-start hover:bg-[#D94E50] transition cursor-pointer"
                 onClick={() => openPinLink(pin)}
               >
                 <div className="flex-1">
@@ -186,7 +186,7 @@ function App() {
                       />
                       <div className="flex gap-2">
                         <button
-                          className="text-xs bg-[#3C0366] text-white px-2 py-1 rounded" // Kept as purple
+                          className="text-xs bg-[#3C0366] text-white px-2 py-1 rounded"
                           onClick={(e) => {
                             e.stopPropagation();
                             saveNewTitle(pin.id);
@@ -195,7 +195,7 @@ function App() {
                           Save
                         </button>
                         <button
-                          className="text-xs bg-[#3C0366] text-white px-2 py-1 rounded" // Kept as purple
+                          className="text-xs bg-[#3C0366] text-white px-2 py-1 rounded"
                           onClick={(e) => {
                             e.stopPropagation();
                             cancelEditing();
