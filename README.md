@@ -57,4 +57,7 @@ Cloud sync (coming in next release)
 📊 Usage analytics dashboard (for signed-in users)
 
 🎯 Advanced pin search and filter
+<img width="159" alt="Screenshot 2025-06-14 011131" src="https://github.com/user-attachments/assets/1f764556-76aa-480a-a701-fb7393fe7084" />
+<img width="942" alt="Screenshot 2025-06-14 011005" src="https://github.com/user-attachments/assets/03873d2b-da12-487c-9c9d-e9d07b704e87" />
+<img width="160" alt="Screenshot 2025-06-12 082812" src="https://github.com/user-attachments/assets/015d3dfb-8dd5-40a1-8171-9518c4b286c6" />
 
