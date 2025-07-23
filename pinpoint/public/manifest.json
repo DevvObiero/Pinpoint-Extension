@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Pinpoint Extension",
+  "name": "Pinpoint Pro",
   "version": "1.0",
   "description": "Organizes Chrome highlight links in a widget for quick access",
 "permissions": ["activeTab", "storage", "clipboardRead"],
