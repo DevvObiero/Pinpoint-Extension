@@ -3,14 +3,7 @@
   "name": "Pinpoint Extension",
   "version": "1.0",
   "description": "Organizes Chrome highlight links in a widget for quick access",
-  "permissions": [
-    "storage",
-    "tabs",
-    "clipboardRead"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+"permissions": ["activeTab", "storage", "clipboardRead"],
   "background": {
     "service_worker": "background.js"
   },
