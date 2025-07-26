@@ -3,7 +3,7 @@
   "name": "Pinpoint Pro",
   "version": "1.0",
   "description": "Organizes Chrome highlight links in a widget for quick access",
-"permissions": ["activeTab", "storage", "clipboardRead"],
+"permissions": ["storage", "clipboardRead"],
   "background": {
     "service_worker": "background.js"
   },
