@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from "react";
 
-function SettingsPanel({ onClose, onChangeSettings, darkMode, toggleDarkMode }) {
+
+
+type Settings = {
+  backgroundColor?: string;
+  textColor?: string;
+}
+
+type SettingsPanelProps = {
+  onClose: () => void;
+  onChangeSettings: (settings: Settings) => void;
+  darkMode: boolean;
+  toggleDarkMode: () => void;
+}
+
+
+function SettingsPanel({ onClose, onChangeSettings, darkMode, toggleDarkMode }: SettingsPanelProps) {
   const savedBackgroundColor = localStorage.getItem("backgroundColor") || (darkMode ? "#000000" : "#F5F5DC");
   const savedTextColor = localStorage.getItem("textColor") || (darkMode ? "#FFFFFF" : "#000000");
 
@@ -15,14 +30,14 @@ function SettingsPanel({ onClose, onChangeSettings, darkMode, toggleDarkMode }) 
     onChangeSettings({ backgroundColor: newBackground, textColor: newTextColor });
   }, [darkMode, onChangeSettings]);
 
-  const handleBackgroundChange = (e) => {
+  const handleBackgroundChange = (e:React.ChangeEvent<HTMLInputElement>) => {
     const newColor = e.target.value;
     setBackgroundColor(newColor);
     onChangeSettings({ backgroundColor: newColor });
     localStorage.setItem("backgroundColor", newColor);
   };
 
-  const handleTextColorChange = (e) => {
+  const handleTextColorChange = (e:React.ChangeEvent<HTMLInputElement>) => {
     const newColor = e.target.value;
     setTextColor(newColor);
     onChangeSettings({ textColor: newColor });
