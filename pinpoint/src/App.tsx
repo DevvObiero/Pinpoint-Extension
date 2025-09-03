@@ -3,12 +3,30 @@ import { FiSettings, FiEdit, FiShare2, FiTrash, FiMoon, FiSun } from "react-icon
 import SettingsPanel from "./SettingsPanel";
 import "./App.css";
 
+
+type Pin = {
+  id: number;
+  url: string;
+  text: string;
+  title: string;
+  platform: string;
+  timestamp: string;
+
+}
+
+type Settings = {
+  backgroundColor: string;
+  textColor: string;
+};
+
+
+
 function App() {
-  const [pins, setPins] = useState([]);
-  const [settingsVisible, setSettingsVisible] = useState(false);
-  const [editingPinId, setEditingPinId] = useState(null);
-  const [newTitle, setNewTitle] = useState("");
-  const [darkMode, setDarkMode] = useState(false);
+  const [pins, setPins] = useState<Pin[]>([]);
+  const [settingsVisible, setSettingsVisible] = useState<boolean>(false);
+  const [editingPinId, setEditingPinId] = useState<number|null>(null);
+  const [newTitle, setNewTitle] = useState<string>("");
+  const [darkMode, setDarkMode] = useState<boolean>(false);
 
   const savedBackgroundColor = localStorage.getItem("backgroundColor") || (darkMode ? "#000000" : "#F5F5DC"); // Changed to black for dark mode
   const savedTextColor = localStorage.getItem("textColor") || "#FFFFFF"; // Default to white for contrast
@@ -18,7 +36,6 @@ function App() {
     textColor: savedTextColor
   });
 
-  const isPremium = false;
 
   const toggleSettings = () => {
     setSettingsVisible((prevState) => !prevState);
@@ -33,7 +50,7 @@ function App() {
     document.documentElement.style.setProperty('--app-bg', newBackground); // Sync background
   };
 
-  const updateSettings = (newSettings) => {
+  const updateSettings = (newSettings:Partial<Settings>) => {
     setSettings((prevSettings) => {
       const updatedSettings = { ...prevSettings, ...newSettings };
       if (newSettings.backgroundColor) {
@@ -75,14 +92,14 @@ function App() {
     }
   };
 
-  const startEditing = (pin) => {
+  const startEditing = (pin:Pin) => {
     setEditingPinId(pin.id);
     setNewTitle(pin.title || "Untitled Page");
   };
 
-  const saveNewTitle = (pinId) => {
+  const saveNewTitle = (pinId:number) => {
     chrome.storage.local.get({ pins: [] }, (result) => {
-      const updatedPins = result.pins.map((p) =>
+      const updatedPins = result.pins.map((p:Pin) =>
         p.id === pinId ? { ...p, title: newTitle } : p
       );
       chrome.storage.local.set({ pins: updatedPins }, () => {
@@ -104,12 +121,17 @@ function App() {
       console.log("Pins loaded in popup:", result.pins);
       setPins(result.pins);
     });
+    // you wil listen for changes in storage to update pins in real-time!!!
+const handleStorageChange = (
+  changes: { [key: string]: chrome.storage.StorageChange },
+  areaName: string
+) => {
+  if (areaName === "local" && changes.pins) {
+    // changes.pins.newValue will be `any` unless we tell TS it's an array of Pin
+    setPins(changes.pins.newValue as Pin[]);
+  }
+};
 
-    const handleStorageChange = (changes, areaName) => {
-      if (areaName === "local" && changes.pins) {
-        setPins(changes.pins.newValue);
-      }
-    };
 
     chrome.storage.onChanged.addListener(handleStorageChange);
     return () => {
@@ -117,19 +139,19 @@ function App() {
     };
   }, []);
 
-  const openPinLink = (pin) => {
+  const openPinLink = (pin:Pin) => {
     chrome.tabs.create({ url: pin.url });
   };
 
-  const sharePin = (pin) => {
+  const sharePin = (pin:Pin) => {
     navigator.clipboard.writeText(pin.url).then(() => {
       alert("Pin URL copied to clipboard!");
     });
   };
 
-  const deletePin = (pinId) => {
+  const deletePin = (pinId:number) => {
     chrome.storage.local.get({ pins: [] }, (result) => {
-      const updatedPins = result.pins.filter((p) => p.id !== pinId);
+      const updatedPins = result.pins.filter((p:Pin) => p.id !== pinId);
       chrome.storage.local.set({ pins: updatedPins }, () => {
         setPins(updatedPins);
       });
