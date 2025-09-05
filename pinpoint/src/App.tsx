@@ -262,7 +262,7 @@ const handleStorageChange = (
                       deletePin(pin.id);
                     }}
                   >
-                    <FiTrash className="w-4 h-4 text-white" />
+                    <FiTrash className="w-4 h-4 text-white" /> 
                   </button>
                 </div>
               </div>
